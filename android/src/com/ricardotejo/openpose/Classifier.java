@@ -17,7 +17,7 @@ public interface Classifier {
     class Recognition {
         // TODO: part, fromXY, toXY
 
-        public List<TensorFlowPoseDetector.Human> humans;
+        public List<Human> humans;
         public Bitmap heat;
         public Bitmap pose;
         /**

@@ -21,6 +21,8 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -93,7 +95,7 @@ public abstract class CameraActivity extends Activity
     protected byte[] getLuminance() {
         return yuvBytes[0];
     }
-
+    byte[] byteArray = null;
     /**
      * Callback for android.hardware.Camera API
      */
@@ -111,8 +113,7 @@ public abstract class CameraActivity extends Activity
                 previewHeight = previewSize.height;
                 previewWidth = previewSize.width;
                 rgbBytes = new int[previewWidth * previewHeight];
-//                onPreviewSizeChosen(new Size(previewSize.width, previewSize.height), 90); //bsj TODO: RT rotation : 90
-                onPreviewSizeChosen(new Size(previewSize.width, previewSize.height), 0);
+                onPreviewSizeChosen(new Size(previewSize.width, previewSize.height), 0); // TODO: RT rotation : 90
             }
         } catch (final Exception e) {
             LOGGER.e(e, "Exception!");

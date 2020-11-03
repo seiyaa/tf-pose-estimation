@@ -23,6 +23,7 @@ import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -36,6 +37,8 @@ import java.util.List;
 
 import com.ricardotejo.openpose.env.ImageUtils;
 import com.ricardotejo.openpose.env.Logger;
+
+import static android.content.ContentValues.TAG;
 
 public class LegacyCameraConnectionFragment extends Fragment {
     private Camera camera;
@@ -78,11 +81,15 @@ public class LegacyCameraConnectionFragment extends Fragment {
                         final SurfaceTexture texture, final int width, final int height) {
 
                     int index = getCameraId();
+                    if (index < 0) {
+                        Log.w(TAG, "no camera");
+                        return;
+                    }
                     camera = Camera.open(index);
 
                     try {
                         Camera.Parameters parameters = camera.getParameters();
-//                        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+                        //parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 
                         List<Camera.Size> cameraSizes = parameters.getSupportedPreviewSizes();
                         Size[] sizes = new Size[cameraSizes.size()];
@@ -94,7 +101,6 @@ public class LegacyCameraConnectionFragment extends Fragment {
                                 CameraConnectionFragment.chooseOptimalSize(
                                         sizes, desiredSize.getWidth(), desiredSize.getHeight());
                         parameters.setPreviewSize(previewSize.getWidth(), previewSize.getHeight());
-//                        camera.setDisplayOrientation(90);
                         camera.setDisplayOrientation(0);
                         camera.setParameters(parameters);
                         camera.setPreviewTexture(texture);
@@ -104,10 +110,9 @@ public class LegacyCameraConnectionFragment extends Fragment {
 
                     camera.setPreviewCallbackWithBuffer(imageListener);
                     Camera.Size s = camera.getParameters().getPreviewSize();
-//                    camera.addCallbackBuffer(new byte[ImageUtils.getYUVByteSize(s.height, s.width)]);//bsj
+                    //camera.addCallbackBuffer(new byte[ImageUtils.getYUVByteSize(s.height, s.width)]);
+                    //textureView.setAspectRatio(s.height, s.width);
                     camera.addCallbackBuffer(new byte[ImageUtils.getYUVByteSize(s.width, s.height)]);
-
-//                    textureView.setAspectRatio(s.height, s.width);//bsj
                     textureView.setAspectRatio(s.width, s.height);
 
                     camera.startPreview();
@@ -211,7 +216,8 @@ public class LegacyCameraConnectionFragment extends Fragment {
         CameraInfo ci = new CameraInfo();
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
             Camera.getCameraInfo(i, ci);
-                return i;
+            //if (ci.facing == CameraInfo.CAMERA_FACING_BACK)
+            return i;
         }
         return -1; // No camera found
     }

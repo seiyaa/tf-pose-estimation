@@ -23,6 +23,8 @@ import java.util.Map;
 public class TensorFlowPoseDetector implements Classifier {
     private static final String TAG = "TensorFlowPoseDetector";
 
+    public static final int MP_INPUT_SIZE = 368;
+
     // Config values.
     private String inputName;
     private String[] outputNames;
@@ -36,7 +38,7 @@ public class TensorFlowPoseDetector implements Classifier {
     private float[] outputHeatMap;
     private float[] outputPafMat;
 
-    private boolean logStats = false;
+    private boolean logStats = true;
 
     private TensorFlowInferenceInterface inferenceInterface;
 
@@ -71,6 +73,7 @@ public class TensorFlowPoseDetector implements Classifier {
         // heatMap=(46, 46, 19) pafMat=(46, 46, 38)
         int heatMap = (46 * 46 * 19);
         int pafMat = (46 * 46 * 38);
+
 //    final Operation operation = c.inferenceInterface.graphOperation(outputNodeNames[0]);
 //    final int numClasses = (int) operation.output(0).shape().size(1);
 //    Log.i(TAG, "Output layer 1 size is " + numClasses);
@@ -95,6 +98,8 @@ public class TensorFlowPoseDetector implements Classifier {
 
     @Override
     public List<Recognition> recognizeImage(Bitmap bitmap) { //final
+        Log.w(TAG, "recognizeImage: start");
+
         // Log this method so that it can be analyzed with systrace.
         Trace.beginSection("recognizeImage");
         float imageMean = 0;
@@ -167,10 +172,18 @@ public class TensorFlowPoseDetector implements Classifier {
         List<Human> humans = estimatePose(outputHeatMap, outputPafMat);
         Log.e(TAG, "Humans found = " + humans.size());
 
-//        r0.heat = debugOutput(outputHeatMap, new int[]{46, 46, 19});
-//        Log.i(TAG, "heat bmp = " + r0.heat.getHeight() + "," + r0.heat.getWidth());
-//        r0.pose = debugOutput(outputPafMat, new int[]{46, 46, 38});
-//        Log.i(TAG, "pose bmp = " + r0.pose.getHeight() + "," + r0.pose.getWidth());
+        if (logStats){
+            final String statString = this.getStatString();
+            final String[] statLines = statString.split("\n");
+            for (final String line : statLines) {
+                Log.d(TAG, line);
+            }
+
+            r0.heat = debugOutput(outputHeatMap, new int[]{46, 46, 19});
+            Log.i(TAG, "heat bmp = " + r0.heat.getHeight() + "," + r0.heat.getWidth());
+            r0.pose = debugOutput(outputPafMat, new int[]{46, 46, 38});
+            Log.i(TAG, "pose bmp = " + r0.pose.getHeight() + "," + r0.pose.getWidth());
+        }
         r0.humans = humans;
 
         recognitions.add(r0);
@@ -315,7 +328,7 @@ public class TensorFlowPoseDetector implements Classifier {
         return result;
     }
 
-    class Coord {
+    /*class Coord {
         public float x;
         public float y;
 
@@ -323,7 +336,7 @@ public class TensorFlowPoseDetector implements Classifier {
             this.x = x;
             this.y = y;
         }
-    }
+    }*/
 
     private List<Coord> findCoords(float[] img, int w, float threshold) {
         List<Coord> cc = new ArrayList<>();
@@ -377,6 +390,7 @@ public class TensorFlowPoseDetector implements Classifier {
         }
         return false;
     }
+
     private List<Human> estimatePose(float[] heatMat, float[] pafMat) {
         //heatMat = np.rollaxis(heatMat, 2, 0);  //# (46a,46b,19c) => (19c,46a,46b)
         /** heatMat is (19c,46a,46b) **/
@@ -551,10 +565,10 @@ public class TensorFlowPoseDetector implements Classifier {
         return humans;
     }
 
-    class Human {
+ /*   class Human {
         Map<Integer, Coord> parts = new HashMap<>();
 
-    }
+    }*/
 
     private Human connections_to_human(List<Connection> connections, float[] heatMat, int w) {
         //def connections_to_human(connections, heatMat):

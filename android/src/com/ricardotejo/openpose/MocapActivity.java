@@ -34,11 +34,17 @@ import java.util.Vector;
 public class MocapActivity extends CameraActivity implements OnImageAvailableListener {
     private static final Logger LOGGER = new Logger();
 
-    private static final int MP_INPUT_SIZE = 368;
-    private static final String MP_INPUT_NAME = "image";
+
+/*    private static final String MP_INPUT_NAME = "image";
     private static final String MP_OUTPUT_L1 = "Openpose/MConv_Stage6_L1_5_pointwise/BatchNorm/FusedBatchNorm";
-    private static final String MP_OUTPUT_L2 = "Openpose/MConv_Stage6_L2_5_pointwise/BatchNorm/FusedBatchNorm";
-    private static final String MP_MODEL_FILE = "file:///android_asset/frozen_person_model.pb";
+    private static final String MP_OUTPUT_L2 = "Openpose/MConv_Stage6_L2_5_pointwise/BatchNorm/FusedBatchNorm";*/
+
+    //qingdao
+    private static final String MP_INPUT_NAME = "input_image";
+    private static final String MP_OUTPUT_L1 = "Output/output_pafs/BiasAdd";
+    private static final String MP_OUTPUT_L2 = "Output/output_heatmaps/BiasAdd";
+
+    private static final String MP_MODEL_FILE = "file:///android_asset/frozen_person_model_qd.pb";
 
     private static final boolean MAINTAIN_ASPECT = true;
     private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
@@ -78,16 +84,10 @@ public class MocapActivity extends CameraActivity implements OnImageAvailableLis
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
 
-        int cropSize = MP_INPUT_SIZE;
+        int cropSize = TensorFlowPoseDetectorQD.MP_INPUT_SIZE;
 
         // Configure the detector
-        detector = TensorFlowPoseDetector.create(
-                getAssets(),
-                MP_MODEL_FILE,
-                MP_INPUT_SIZE,
-                MP_INPUT_NAME,
-                new String[]{MP_OUTPUT_L1, MP_OUTPUT_L2}
-        );
+        detector = TensorFlowPoseDetectorQD.create(getAssets());
 
         SAMPLE_IMAGE = BitmapFactory.decodeResource(getResources(), R.drawable.jump2);
 
@@ -204,7 +204,6 @@ public class MocapActivity extends CameraActivity implements OnImageAvailableLis
         readyForNextImage();
 
         final Canvas canvas = new Canvas(croppedBitmap);
-
         canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null); // paint the cropped image
 
         //canvas.drawBitmap(rgbFrameBitmap,
@@ -265,7 +264,7 @@ public class MocapActivity extends CameraActivity implements OnImageAvailableLis
 
     private Integer HUMAN_RADIUS = 3;
 
-    private void draw_humans(Canvas canvas, List<TensorFlowPoseDetector.Human> human_list) {
+    private void draw_humans(Canvas canvas, List<Human> human_list) {
         //def draw_humans(img, human_list):
         // image_h, image_w = img_copied.shape[:2]
         int cp = Common.CocoPart.values().length;
@@ -273,7 +272,7 @@ public class MocapActivity extends CameraActivity implements OnImageAvailableLis
         int image_h = canvas.getHeight();
 
         //    for human in human_list:
-        for (TensorFlowPoseDetector.Human human : human_list) {
+        for (Human human : human_list) {
             Point[] centers = new Point[cp];
             //part_idxs = human.keys()
             Set<Integer> part_idxs = human.parts.keySet();
@@ -288,7 +287,7 @@ public class MocapActivity extends CameraActivity implements OnImageAvailableLis
                     continue;
                 }
                 //part_coord = human[i][1]
-                TensorFlowPoseDetector.Coord part_coord = human.parts.get(i.index);
+                Coord part_coord = human.parts.get(i.index);
                 //center = (int(part_coord[0] * image_w + 0.5), int(part_coord[1] * image_h + 0.5))
                 Point center = new Point((int) (part_coord.x * image_w + 0.5f), (int) (part_coord.y * image_h + 0.5f));
                 //centers[i] = center
